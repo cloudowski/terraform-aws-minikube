@@ -52,7 +52,6 @@ sudo minikube config set driver none
 sudo minikube start \
     --apiserver-name=$PUBDNS \
     --apiserver-port=58443 \
-    --addons=metallb,metrics-server \
     --extra-config=apiserver.cloud-provider=aws \
     --extra-config=controller-manager.cloud-provider=aws \
     --extra-config=kubelet.cloud-provider=aws \
@@ -60,7 +59,14 @@ sudo minikube start \
     --extra-config=kubelet.hostname-override=$FULLHOSTNAME
     
 
-# ingress with hostnetwork
+sudo minikube addons enable metallb
+sudo minikube addons enable metrics-server
+
+
+# rename context
+sudo kubectl config rename-context minikube aws-minikube
+
+# ingress with hostports
 sudo helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 sudo helm repo add stable https://kubernetes-charts.storage.googleapis.com/
 sudo helm repo update

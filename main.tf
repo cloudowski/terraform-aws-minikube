@@ -1,9 +1,29 @@
 terraform {
   required_version = "~> 0.13.2"
+
+  required_providers {
+    sshcommand = {
+      source  = "invidian/sshcommand"
+      version = "0.2.0"
+    }
+  }
 }
 
 locals {
   bootstrap_file_name = "${path.module}/bootstrap.sh"
+  context_name        = "aws-minikube-${var.env_name}"
+  wait_for_cluster    = <<EOT
+      timeout=500
+      i=0
+      while :;do
+        [ $timeout -gt 0 ] || exit 1
+        sudo kubectl get pod && exit 0
+        i=$((i+1))
+        sleep 10
+        timeout=$((timeout-10))
+      done
+      exit 1
+EOT
 }
 
 data "aws_ami" "ubuntu_20_04" {
@@ -41,9 +61,6 @@ module "security_group" {
   ingress_rules       = ["ssh-tcp", "all-icmp", "all-tcp"]
   egress_rules        = ["all-all"]
 }
-
-
-
 
 resource "aws_iam_role" "node" {
   name = "${var.env_name}-k8s-minikube"
@@ -101,7 +118,7 @@ module "node" {
   version = "~> 2.0"
 
   name             = "${var.env_name}-k8s-minikube"
-  user_data_base64 = "${base64encode(file(local.bootstrap_file_name))}"
+  user_data_base64 = base64encode(file(local.bootstrap_file_name))
   ami              = data.aws_ami.ubuntu_20_04.id
   instance_type    = var.instance_type
   key_name         = aws_key_pair.this.key_name
@@ -122,3 +139,26 @@ module "node" {
   }
 
 }
+
+resource "null_resource" "wait_for_cluster" {
+  provisioner "remote-exec" {
+    inline = [local.wait_for_cluster]
+
+  }
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = tls_private_key.this.private_key_pem
+    host        = module.node.public_dns[0]
+  }
+}
+
+resource "sshcommand_command" "get_kubeconfig" {
+  host        = module.node.public_dns[0]
+  user        = "ubuntu"
+  command     = "sudo kubectl config view --minify --flatten | sed -e 's|server: https://.*:|server: https://${module.node.public_dns[0]}:|' "
+  private_key = tls_private_key.this.private_key_pem
+
+  depends_on = [null_resource.wait_for_cluster]
+}
+

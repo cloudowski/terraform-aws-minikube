@@ -12,3 +12,8 @@ output "public_dns" {
   description = "Public DNS name of the instance"
   value       = module.node.public_dns
 }
+
+output "kubeconfig" {
+  description = "Kubeconfig content"
+  value       = sshcommand_command.get_kubeconfig.result
+}

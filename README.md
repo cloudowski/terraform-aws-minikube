@@ -10,23 +10,27 @@ This Terraform module creates an instance on AWS and installs minikube on it.
 
 ## How to connect
 
-You can import Kubernetes configuration to your local context with the following steps. Make sure `$KEY` points to the file with the private key obtained with `terraform output ssh_private_key`.
+You can connect to the instance with the ssh private key obtained with `terraform output ssh_private_key`. Save it somewhere and use `ubuntu` as a username:
 
 ```shell
 PUBLIC_DNS=$(terraform output public_dns)
-KUBETMP=$(mktemp)
-KUBECONTEXT=aws-microcluster
-
-ssh ubuntu@PUBLIC_DNS -i $KEY 'sudo kubectl config view --minify --flatten' | sed -e "s|server: https://.*:|server: https://PUBLIC_DNS:|" -e "s|minikube|$KUBECONTEXT|g" > $KUBETMP
-
-kubectl konfig import --save $KUBETMP
+ssh ubuntu@PUBLIC_DNS -i $KEY 
 ```
 
-To use `kubectl konfig import` command you need to install it using [krew](https://krew.sigs.k8s.io/docs/user-guide/setup/install/).
+To connect to Kubernetes API use `kubeconfig` output, for example:
 
+```shell
+terraform output kubeconfig > /tmp/aws-minikube-kubeconfig
+export KUBECONFIG=/tmp/aws-minikube-kubeconfig
+```
 
+You can also merge it with your default kubeconfig using `konfig` plugin (install with [krew](https://krew.sigs.k8s.io/docs/user-guide/setup/install/)):
 
-## Inputs
+```shell
+kubectl konfig import --save /tmp/aws-minikube-kubeconfig
+```
+
+## Inputs## Inputs
 
 | Name                 | Description                               | Type     | Default       | Required |
 | -------------------- | ----------------------------------------- | -------- | ------------- | :------: |
@@ -40,6 +44,7 @@ To use `kubectl konfig import` command you need to install it using [krew](https
 
 | Name              | Description                                |
 | ----------------- | ------------------------------------------ |
+| kubeconfig        | Kubeconfig content                         |
 | public\_dns       | Public DNS name of the instance            |
 | public\_ip        | Public IP name of the instance             |
 | ssh\_private\_key | SSH private key generated for the instance |
