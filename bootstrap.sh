@@ -52,7 +52,7 @@ sudo minikube config set driver none
 sudo minikube start \
     --apiserver-name=$PUBDNS \
     --apiserver-port=58443 \
-    --addons=metallb \
+    --addons=metallb,metrics-server \
     --extra-config=apiserver.cloud-provider=aws \
     --extra-config=controller-manager.cloud-provider=aws \
     --extra-config=kubelet.cloud-provider=aws \
@@ -91,8 +91,6 @@ sudo kubectl taint nodes --all node-role.kubernetes.io/master-
 sudo kubectl label nodes --all node-role.kubernetes.io/master-
 
 # metallb
-# sudo minikube addons enable metallb
-
 TMPCM=$(mktemp)
 cat <<EOF > $TMPCM
 address-pools:
