@@ -17,3 +17,9 @@ output "kubeconfig" {
   description = "Kubeconfig content"
   value       = sshcommand_command.get_kubeconfig.result
 }
+
+output "kubernetes_config" {
+  description = "Object with values prepared for the kubernetes provider config."
+  value       = local.kubernetes_config
+}
+

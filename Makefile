@@ -1,3 +1,6 @@
 
+.PHONY: test 
+
+
 test:
-	go test -v test/
+	cd ./test; go test

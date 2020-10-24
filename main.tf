@@ -12,7 +12,13 @@ terraform {
 locals {
   bootstrap_file_name = "${path.module}/bootstrap.sh"
   context_name        = "aws-minikube-${var.env_name}"
-  wait_for_cluster    = <<EOT
+  kubernetes_config = {
+    host                   = yamldecode(sshcommand_command.get_kubeconfig.result).clusters[0].cluster.server
+    cluster_ca_certificate = base64decode(yamldecode(sshcommand_command.get_kubeconfig.result).clusters[0].cluster.certificate-authority-data)
+    client_certificate     = base64decode(yamldecode(sshcommand_command.get_kubeconfig.result).users[0].user.client-certificate-data)
+    client_key             = base64decode(yamldecode(sshcommand_command.get_kubeconfig.result).users[0].user.client-key-data)
+  }
+  wait_for_cluster = <<EOT
       timeout=500
       i=0
       while :;do
