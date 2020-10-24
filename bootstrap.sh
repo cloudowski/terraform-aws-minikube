@@ -10,6 +10,7 @@ sudo apt-get install -y \
     curl \
     gnupg-agent \
     conntrack \
+    socat \
     containernetworking-plugins \
     software-properties-common
 
