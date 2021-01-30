@@ -99,7 +99,8 @@ resource "aws_iam_policy" "node" {
         {
             "Effect": "Allow",
             "Action": [
-                "ec2:*"
+                "ec2:*",
+                "elasticloadbalancing:*"
                 ],
             "Resource": "*"
         }
