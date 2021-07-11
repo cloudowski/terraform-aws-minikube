@@ -1,5 +1,6 @@
 output "ssh_private_key" {
-  value = module.cluster.ssh_private_key
+  value     = module.cluster.ssh_private_key
+  sensitive = true
 }
 
 output "public_dns" {
